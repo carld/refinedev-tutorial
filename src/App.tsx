@@ -1,43 +1,67 @@
-import { GitHubBanner, Refine, WelcomePage } from "@refinedev/core";
-import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
-import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
-import routerBindings, {
-  DocumentTitleHandler,
-  UnsavedChangesNotifier,
-} from "@refinedev/react-router-v6";
+import { Refine } from "@refinedev/core";
+import {
+  ThemedLayoutV2,
+  ErrorComponent,
+  RefineThemes,
+  RefineSnackbarProvider,
+  notificationProvider,
+} from "@refinedev/mui";
+import { CssBaseline, GlobalStyles, ThemeProvider } from "@mui/material";
+import routerBindings, { NavigateToResource, UnsavedChangesNotifier } from "@refinedev/react-router-v6";
 import dataProvider from "@refinedev/simple-rest";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import "./App.css";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { MuiInferencer } from "@refinedev/inferencer/mui";
 
-function App() {
+const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <GitHubBanner />
-      <RefineKbarProvider>
-        <DevtoolsProvider>
+    <ThemeProvider theme={RefineThemes.Blue}>
+      <CssBaseline />
+      <GlobalStyles styles={{ html: { WebkitFontSmoothing: "auto" } }} />
+      <RefineSnackbarProvider>
+        <BrowserRouter>
           <Refine
             routerProvider={routerBindings}
-            dataProvider={dataProvider("https://api.fake-rest.refine.dev")}
+            dataProvider={dataProvider("http://localhost:9000")}
+            notificationProvider={notificationProvider}
+            resources={[
+              {
+                name: "users",
+                list: "/users",
+                show: "/users/show/:id",
+//                create: "/users/create",
+//                edit: "/users/edit/:id",
+              },
+            ]}
             options={{
               syncWithLocation: true,
               warnWhenUnsavedChanges: true,
-              useNewQueryKeys: true,
-              projectId: "tdGFiM-ZmL7KW-e5zrXJ",
             }}
           >
             <Routes>
-              <Route index element={<WelcomePage />} />
+              <Route
+                element={
+                  <ThemedLayoutV2>
+                    <Outlet />
+                  </ThemedLayoutV2>
+                }
+              >
+                <Route index element={<NavigateToResource resource="users" />} />
+                <Route path="users">
+                  <Route index element={<MuiInferencer />} />
+                  <Route path="show/:id" element={<MuiInferencer />} />
+//                  <Route path="edit/:id" element={<MuiInferencer />} />
+//                  <Route path="create" element={<MuiInferencer />} />
+                </Route>
+                <Route path="*" element={<ErrorComponent />} />
+              </Route>
             </Routes>
-            <RefineKbar />
             <UnsavedChangesNotifier />
-            <DocumentTitleHandler />
           </Refine>
-          <DevtoolsPanel />
-        </DevtoolsProvider>
-      </RefineKbarProvider>
-    </BrowserRouter>
+        </BrowserRouter>
+      </RefineSnackbarProvider>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;
